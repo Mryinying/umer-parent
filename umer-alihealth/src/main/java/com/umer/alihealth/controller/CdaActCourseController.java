@@ -1,6 +1,11 @@
 package com.umer.alihealth.controller;
 
 
+import com.umer.alihealth.entity.CdaActCourse;
+import com.umer.alihealth.service.ICdaActCourseService;
+import com.umer.common.api.Result;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import org.springframework.web.bind.annotation.RestController;
@@ -14,8 +19,15 @@ import org.springframework.web.bind.annotation.RestController;
  * @since 2020-10-21
  */
 @RestController
-@RequestMapping("/cda-act-course")
+@RequestMapping("/course")
 public class CdaActCourseController {
 
+    @Autowired
+    private ICdaActCourseService cdaActCourseService;
+
+    @GetMapping("/get")
+    public Result<CdaActCourse> get(){
+        return Result.success(cdaActCourseService.get());
+    }
 }
 

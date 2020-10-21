@@ -1,5 +1,6 @@
 package com.umer.alihealth.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.umer.alihealth.entity.CdaActCourse;
 import com.umer.alihealth.mapper.CdaActCourseMapper;
 import com.umer.alihealth.service.ICdaActCourseService;
@@ -17,4 +18,8 @@ import org.springframework.stereotype.Service;
 @Service
 public class CdaActCourseServiceImpl extends ServiceImpl<CdaActCourseMapper, CdaActCourse> implements ICdaActCourseService {
 
+    @Override
+    public CdaActCourse get() {
+        return this.getOne(new LambdaQueryWrapper<CdaActCourse>().eq(CdaActCourse::getId, 1));
+    }
 }

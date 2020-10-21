@@ -22,4 +22,8 @@
         id, title, expert, course_date, start_time, end_time, address, url, disease_list, created_at, updated_at
     </sql>
 
+    <select id="get" resultType="com.umer.alihealth.entity.CdaActCourse">
+        select  * from cda_act_course where id = #{id};
+    </select>
+
 </mapper>
