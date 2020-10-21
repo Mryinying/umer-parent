@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.umer.alihealth.mapper.CdaActCourseMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.umer.alihealth.entity.CdaActCourse">
+        <id column="id" property="id" />
+        <result column="title" property="title" />
+        <result column="expert" property="expert" />
+        <result column="course_date" property="courseDate" />
+        <result column="start_time" property="startTime" />
+        <result column="end_time" property="endTime" />
+        <result column="address" property="address" />
+        <result column="url" property="url" />
+        <result column="disease_list" property="diseaseList" />
+        <result column="created_at" property="createdAt" />
+        <result column="updated_at" property="updatedAt" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, title, expert, course_date, start_time, end_time, address, url, disease_list, created_at, updated_at
+    </sql>
+
+</mapper>

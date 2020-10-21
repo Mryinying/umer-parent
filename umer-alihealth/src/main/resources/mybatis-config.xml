@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE configuration
+        PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+    <!--
+        主查询没法设置，会直接加载。而从查询可以配置延迟加载，加载时机。
+
+        （主表、关联表）
+
+        关联对象的加载时机（子查询）：
+
+        直接加载：直接查
+        侵入式延迟：关联对象的详情侵入到了主加载对象的详情里面了！！
+        深度延迟：子查询一开始不查，只有真正访问关联对象时才回去查
+
+        SpringMVC一般项目基本都是用不了深度延迟查询的，因为返回都是json返回，会对对象各个属性都进行访问。。所有就直接都查了
+    -->
+    <settings>
+        <!-- 在控制台和日志中打印查询语句 -->
+        <setting name="logImpl" value="SLF4J"/>
+        <!--仅在控制台打印查询语句-->
+        <!--<setting name="logImpl" value="STDOUT_LOGGING"/>-->
+        <!--是否开启延迟加载，这个是总开关，false的话下面的也没用！-->
+        <setting name="lazyLoadingEnabled" value="true"/>
+        <!--是否开启侵入式延迟加载-->
+        <setting name="aggressiveLazyLoading" value="false"/>
+        <!--开启驼峰映射-->
+        <setting name="mapUnderscoreToCamelCase" value="true"/>
+    </settings>
+    <plugins>
+        <!-- 4.0以后的版本，是这个类！！且不需要配置dialect，会自动检测 -->
+        <plugin interceptor="com.github.pagehelper.PageInterceptor">
+            <!--<property name="dialect" value="mysql"/>-->
+            <!-- 该参数默认为false -->
+            <!-- 设置为true时，会将RowBounds第一个参数offset当成pageNum页码使用 -->
+            <!-- 和startPage中的pageNum效果一样-->
+            <property name="offsetAsPageNum" value="true"/>
+            <!-- 该参数默认为false -->
+            <!-- 设置为true时，使用RowBounds分页会进行count查询 -->
+            <property name="rowBoundsWithCount" value="false"/>
+            <!-- 设置为true时，如果pageSize=0或者RowBounds.limit = 0就会查询出全部的结果 -->
+            <!-- （相当于没有执行分页查询，但是返回结果仍然是Page类型）-->
+            <property name="pageSizeZero" value="true"/>
+            <!-- 3.3.0版本可用 - 分页参数合理化，默认false禁用 -->
+            <!-- 启用合理化时，如果pageNum<1会查询第一页，如果pageNum>pages会查询最后一页 -->
+            <!-- 禁用合理化时，如果pageNum<1或pageNum>pages会返回空数据 -->
+            <property name="reasonable" value="false"/>
+            <!-- 3.5.0版本可用 - 为了支持startPage(Object params)方法 -->
+            <!-- 增加了一个`params`参数来配置参数映射，用于从Map或ServletRequest中取值 -->
+            <!-- 可以配置pageNum,pageSize,count,pageSizeZero,reasonable,不配置映射的用默认值 -->
+            <!-- 不理解该含义的前提下，不要随便复制该配置 -->
+            <property name="params" value="pageNum=start;pageSize=limit;"/>
+            <!-- always总是返回PageInfo类型,check检查返回类型是否为PageInfo,none返回Page -->
+            <property name="returnPageInfo" value="check"/>
+        </plugin>
+    </plugins>
+</configuration>
