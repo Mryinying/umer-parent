@@ -2,11 +2,8 @@ server:
   port: 8082
 
 spring:
-  datasource:
-    url: jdbc:mysql://db.umer.com.cn:3306/healthact?useUnicode=true&useSSL=false&serverTimezone=UTC
-    username: hc
-    password: Hc0920
-    driver-class-name: com.mysql.jdbc.Driver
+  profiles:
+    active: local
 
 mybatis:
   mapper-locations: classpath:/mapper/*.xml
