@@ -3,7 +3,7 @@ package com.umer.alihealth;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-@SpringBootApplication
+@SpringBootApplication(scanBasePackages = "com.umer")
 public class UmerAlihealthApplication {
 
 	public static void main(String[] args) {

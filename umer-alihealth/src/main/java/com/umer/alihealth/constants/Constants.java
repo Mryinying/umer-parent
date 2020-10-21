@@ -1,4 +1,4 @@
-package com.umer.alihealth;
+package com.umer.alihealth.constants;
 
 /**
  * 常量信息
