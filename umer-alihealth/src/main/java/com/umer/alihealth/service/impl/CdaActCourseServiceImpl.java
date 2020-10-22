@@ -1,6 +1,8 @@
 package com.umer.alihealth.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.umer.alihealth.entity.CdaActCourse;
 import com.umer.alihealth.mapper.CdaActCourseMapper;
 import com.umer.alihealth.service.ICdaActCourseService;
@@ -20,6 +22,7 @@ public class CdaActCourseServiceImpl extends ServiceImpl<CdaActCourseMapper, Cda
 
     @Override
     public CdaActCourse get() {
-        return this.getOne(new LambdaQueryWrapper<CdaActCourse>().eq(CdaActCourse::getId, 1));
+
+        return this.getOne(Wrappers.lambdaQuery(CdaActCourse.class).eq(CdaActCourse::getId, 1));
     }
 }

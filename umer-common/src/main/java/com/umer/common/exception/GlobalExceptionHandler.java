@@ -47,4 +47,9 @@ public class GlobalExceptionHandler {
         }
         return Result.validateFailed(message);
     }
+
+    @ExceptionHandler(value = Exception.class)
+    public Result handleValidException(Exception e) {
+        return Result.failed(e.getMessage());
+    }
 }
