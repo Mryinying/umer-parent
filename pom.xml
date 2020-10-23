@@ -10,6 +10,7 @@
     <modules>
         <module>umer-common</module>
         <module>umer-alihealth</module>
+        <module>umer-auth</module>
     </modules>
     <packaging>pom</packaging>
 
