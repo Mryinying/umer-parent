@@ -1,8 +1,10 @@
 package com.umer.alihealth.controller;
 
-import com.umer.alihealth.utils.SecurityUtils;
+import com.umer.alihealth.auth.TokenProperties;
 import com.umer.common.api.Result;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -16,11 +18,15 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("user")
 public class UserController {
 
-    
-    @PreAuthorize("hasAuthority('sys:user:view')")
+    @Autowired
+    private TokenProperties tokenProperties;
+
+    @PreAuthorize("hasAuthority('sys:user:sss')")
     @GetMapping(value="/findAll")
     public Result findAll() {
-        return Result.success(SecurityUtils.getUsername());
+        String s = tokenProperties.toString();
+        SecurityContextHolder.getContext().getAuthentication();
+        return Result.success(SecurityContextHolder.getContext().getAuthentication().getAuthorities());
     }
     
     @PreAuthorize("hasAuthority('sys:user:edit')")

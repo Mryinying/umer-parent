@@ -32,6 +32,11 @@ public class WebConfig {
 
     private final static SimpleDateFormat FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
+    @Bean
+    public ObjectMapper objectMapper() {
+        return new ObjectMapper();
+    }
+
     /**
      * @return SpringBoot 内部默认使用的是jackson作为默认的HttpMessageConverter，所以这边只需配置ObjectMapper序列化与反序列化规则即可
      */

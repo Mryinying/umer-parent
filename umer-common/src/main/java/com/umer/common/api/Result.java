@@ -12,12 +12,24 @@ public class Result<T> {
     protected Result() {
     }
 
+    protected Result(long code, String message) {
+        this.code = code;
+        this.message = message;
+    }
+
     protected Result(long code, String message, T data) {
         this.code = code;
         this.message = message;
         this.data = data;
     }
 
+    /**
+     * 成功返回结果
+     *
+     */
+    public static <T> Result<T> success() {
+        return new Result<T>(ResultCode.SUCCESS.getCode(), ResultCode.SUCCESS.getMessage());
+    }
     /**
      * 成功返回结果
      *
@@ -53,7 +65,14 @@ public class Result<T> {
     public static <T> Result<T> failed(IErrorCode errorCode, String message) {
         return new Result<T>(errorCode.getCode(), message, null);
     }
-
+    /**
+     * 失败返回结果
+     * @param errorCode 错误码
+     * @param message 错误信息
+     */
+    public static <T> Result<T> failed(int errorCode, String message) {
+        return new Result<T>(errorCode,message, null);
+    }
     /**
      * 失败返回结果
      * @param message 提示信息
