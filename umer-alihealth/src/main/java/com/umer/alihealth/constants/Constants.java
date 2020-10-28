@@ -8,10 +8,14 @@ public interface Constants {
     /**
      * 日期格式化Pattern
      */
-    class DateType {
-        public final static String DATE_TIME = "yyyy-MM-dd HH:mm:ss";
-        public final static String DATE = "yyyy-MM-dd";
-        public final static String TIME = "HH:mm:ss";
-        public final static String YEAR_MONTH = "yyyy-MM";
+    interface DateType {
+        String DATE_TIME = "yyyy-MM-dd HH:mm:ss";
+        String DATE = "yyyy-MM-dd";
+        String TIME = "HH:mm:ss";
+        String YEAR_MONTH = "yyyy-MM";
+    }
+
+    interface RedisPrefix{
+        String TOKEN_PREFIX = "umer:token:alihealth:";
     }
 }

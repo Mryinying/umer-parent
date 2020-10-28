@@ -3,6 +3,7 @@ package com.umer.alihealth.security;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import com.umer.alihealth.auth.TokenProperties;
+import com.umer.alihealth.constants.Constants;
 import com.umer.alihealth.service.UserService;
 import com.umer.alihealth.utils.JwtUtils;
 import com.umer.common.api.Result;
@@ -80,7 +81,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         //强制下线
-        Object redisToken = redisService.get(userId);
+        Object redisToken = redisService.get(Constants.RedisPrefix.TOKEN_PREFIX + userId);
         if(redisToken==null || !redisToken.equals(realToken)){
             if(redisToken!=null)
                 response.addHeader(tokenProperties.getAuthorizationHeaderName(), redisToken.toString());
@@ -114,8 +115,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 tokenProperties.getSecretKey()
         );
 
-        redisService.del(userId);
-        redisService.set(userId,newToken,tokenProperties.getTokenExpireSecond()*2);
+        redisService.del(Constants.RedisPrefix.TOKEN_PREFIX + userId);
+        redisService.set(Constants.RedisPrefix.TOKEN_PREFIX + userId,newToken,tokenProperties.getTokenExpireSecond()*2);
 
         // 构建认证对象
         saveAuthentication(response, request, filterChain, userId,newToken);

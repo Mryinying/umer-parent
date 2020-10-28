@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.locks.ReentrantLock;
 
 @Service
 public class SysUserServiceImpl implements UserService {
@@ -29,6 +30,16 @@ public class SysUserServiceImpl implements UserService {
 		permissions.add("sys:user:edit");
 		permissions.add("sys:user:delete");
 		return permissions;
+	}
+
+	@Override
+	public Set<String> findRole(String username) {
+		Set<String> roles = new HashSet<>();
+		if(username.length()>5)
+			roles.add("admin");
+		else
+			roles.add("emp");
+		return roles;
 	}
 
 }

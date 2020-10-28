@@ -25,4 +25,6 @@ public interface UserService {
 	 */
 	Set<String> findPermissions(String username);
 
+	Set<String> findRole(String username);
+
 }
