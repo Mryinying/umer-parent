@@ -1,21 +1,34 @@
 package com.umer.common.exception;
 
 
-import com.umer.common.api.IErrorCode;
+import com.umer.common.api.ResultCode;
+import lombok.Data;
 
 /**
  * 自定义API异常
  */
+@Data
 public class ApiException extends RuntimeException {
-    private IErrorCode errorCode;
 
-    public ApiException(IErrorCode errorCode) {
-        super(errorCode.getMessage());
-        this.errorCode = errorCode;
+    private int code;
+
+    public ApiException() {
+        super();
     }
 
-    public ApiException(String message) {
+    public ApiException(ResultCode code) {
+        super(code.getMessage());
+        this.code = code.getCode();
+    }
+
+    public ApiException(ResultCode code, String msg) {
+        super(msg);
+        this.code = code.getCode();
+    }
+
+    public ApiException(int code, String message) {
         super(message);
+        this.code = code;
     }
 
     public ApiException(Throwable cause) {
@@ -24,9 +37,5 @@ public class ApiException extends RuntimeException {
 
     public ApiException(String message, Throwable cause) {
         super(message, cause);
-    }
-
-    public IErrorCode getErrorCode() {
-        return errorCode;
     }
 }

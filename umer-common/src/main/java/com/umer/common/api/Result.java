@@ -1,9 +1,12 @@
 package com.umer.common.api;
 
+import lombok.Data;
+
 /**
  * 通用返回对象
  * Created by macro on 2019/4/19.
  */
+@Data
 public class Result<T> {
     private long code;
     private String message;
@@ -30,6 +33,14 @@ public class Result<T> {
     public static <T> Result<T> success() {
         return new Result<T>(ResultCode.SUCCESS.getCode(), ResultCode.SUCCESS.getMessage());
     }
+
+    /**
+     * 成功返回结果
+     *
+     */
+    public static <T> Result<T> success(String msg) {
+        return new Result<T>(ResultCode.SUCCESS.getCode(), msg);
+    }
     /**
      * 成功返回结果
      *
@@ -52,22 +63,6 @@ public class Result<T> {
     /**
      * 失败返回结果
      * @param errorCode 错误码
-     */
-    public static <T> Result<T> failed(IErrorCode errorCode) {
-        return new Result<T>(errorCode.getCode(), errorCode.getMessage(), null);
-    }
-
-    /**
-     * 失败返回结果
-     * @param errorCode 错误码
-     * @param message 错误信息
-     */
-    public static <T> Result<T> failed(IErrorCode errorCode, String message) {
-        return new Result<T>(errorCode.getCode(), message, null);
-    }
-    /**
-     * 失败返回结果
-     * @param errorCode 错误码
      * @param message 错误信息
      */
     public static <T> Result<T> failed(int errorCode, String message) {
@@ -79,6 +74,13 @@ public class Result<T> {
      */
     public static <T> Result<T> failed(String message) {
         return new Result<T>(ResultCode.FAILED.getCode(), message, null);
+    }
+
+    /**
+     * 失败返回结果
+     */
+    public static <T> Result<T> failed(ResultCode resultCode) {
+        return failed(resultCode.getCode(),resultCode.getMessage());
     }
 
     /**
@@ -117,27 +119,4 @@ public class Result<T> {
         return new Result<T>(ResultCode.FORBIDDEN.getCode(), ResultCode.FORBIDDEN.getMessage(), data);
     }
 
-    public long getCode() {
-        return code;
-    }
-
-    public void setCode(long code) {
-        this.code = code;
-    }
-
-    public String getMessage() {
-        return message;
-    }
-
-    public void setMessage(String message) {
-        this.message = message;
-    }
-
-    public T getData() {
-        return data;
-    }
-
-    public void setData(T data) {
-        this.data = data;
-    }
 }

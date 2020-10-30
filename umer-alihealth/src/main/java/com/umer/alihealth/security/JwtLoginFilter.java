@@ -6,6 +6,8 @@ import com.umer.alihealth.auth.TokenProperties;
 import com.umer.alihealth.constants.Constants;
 import com.umer.alihealth.entity.User;
 import com.umer.alihealth.utils.JwtUtils;
+import com.umer.common.api.Result;
+import com.umer.common.constant.AuthConstant;
 import com.umer.common.service.RedisService;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -13,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.authentication.event.InteractiveAuthenticationSuccessEvent;
@@ -82,15 +85,19 @@ public class JwtLoginFilter extends UsernamePasswordAuthenticationFilter {
 
     }
 
+    /**
+     * 登录成功调用
+     * @param request
+     * @param response
+     * @param chain
+     * @param authResult
+     * @throws IOException
+     */
     @Override
     protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain,
-                                            Authentication authResult) {
+                                            Authentication authResult) throws IOException {
         // 存储登录认证信息到上下文
         SecurityContextHolder.getContext().setAuthentication(authResult);
-        // 触发事件监听器
-        if (this.eventPublisher != null) {
-            eventPublisher.publishEvent(new InteractiveAuthenticationSuccessEvent(authResult, this.getClass()));
-        }
 
         // 生成并返回token给客户端，后续访问携带此token
         //header中返回用户权限信息
@@ -101,9 +108,13 @@ public class JwtLoginFilter extends UsernamePasswordAuthenticationFilter {
         redisService.del(Constants.RedisPrefix.TOKEN_PREFIX + username);
         redisService.set(Constants.RedisPrefix.TOKEN_PREFIX + username, token, tokenProperties.getTokenExpireSecond() * 2);
 
-        response.addHeader(tokenProperties.getAuthorities(), new Gson().toJson(authResult.getAuthorities()));
-        response.addHeader(tokenProperties.getAuthorizationHeaderName(), token);
-
+        response.addHeader(AuthConstant.AUTHORITY_CLAIM_NAME, new Gson().toJson(authResult.getAuthorities()));
+        response.addHeader(AuthConstant.JWT_TOKEN_HEADER, token);
+        JwtUtils.writeJson(response,Result.success("login success"), HttpStatus.OK);
     }
 
+    @Override
+    protected void unsuccessfulAuthentication(HttpServletRequest request, HttpServletResponse response, AuthenticationException failed) throws IOException, ServletException {
+        JwtUtils.writeJson(response,Result.failed("login fail"), HttpStatus.UNAUTHORIZED);
+    }
 }

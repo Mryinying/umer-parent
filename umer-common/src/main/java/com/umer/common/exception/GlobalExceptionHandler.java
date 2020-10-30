@@ -16,10 +16,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(value = ApiException.class)
     public Result handle(ApiException e) {
-        if (e.getErrorCode() != null) {
-            return Result.failed(e.getErrorCode());
-        }
-        return Result.failed(e.getMessage());
+        return Result.failed(e.getCode(),e.getMessage());
     }
 
     @ExceptionHandler(value = MethodArgumentNotValidException.class)

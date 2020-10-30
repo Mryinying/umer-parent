@@ -14,11 +14,6 @@ token:
   secret-key: 123kafkahiwhfakna0808234*)*)(
   # token 过期的秒数
   token-expire-second: 60
-  # http header 中请求头的前缀
-  token-header-prefix: "Bearer "
-  # 认证头的header名字
-  authorization-header-name: "Authorization"
-  authorities: "AUTHORITIES"
 
 management:
   endpoints:

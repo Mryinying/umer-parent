@@ -1,13 +1,12 @@
 package com.umer.alihealth.security;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import com.umer.alihealth.auth.TokenProperties;
 import com.umer.alihealth.constants.Constants;
 import com.umer.alihealth.service.UserService;
 import com.umer.alihealth.utils.JwtUtils;
 import com.umer.common.api.Result;
-import com.umer.common.api.ResultCode;
+import com.umer.common.constant.AuthConstant;
 import com.umer.common.service.RedisService;
 import io.jsonwebtoken.*;
 import lombok.RequiredArgsConstructor;
@@ -15,7 +14,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.security.authentication.TestingAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -28,10 +26,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -49,16 +44,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final UserService userService;
 
-    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
-
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws IOException, ServletException {
 
         // 获取 认证头
-        String authorizationHeader = request.getHeader(tokenProperties.getAuthorizationHeaderName());
+        String authorizationHeader = request.getHeader(AuthConstant.JWT_TOKEN_HEADER);
         if (!checkIsTokenAuthorizationHeader(authorizationHeader)) {
-            log.debug("获取到认证头Authorization的值:[{}]但不是我们系统中登录后签发的。", authorizationHeader);
-            writeJson(response, "token不能为空");
             filterChain.doFilter(request, response);
             return;
         }
@@ -76,74 +67,44 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
         // token 不合法
         if (null == userId) {
-            writeJson(response, "认证token不合法");
+            JwtUtils.writeJson(response, Result.failed("认证token不合法"), HttpStatus.UNAUTHORIZED);
             return;
         }
 
         //强制下线
         Object redisToken = redisService.get(Constants.RedisPrefix.TOKEN_PREFIX + userId);
-        if(redisToken==null || !redisToken.equals(realToken)){
-            if(redisToken!=null)
-                response.addHeader(tokenProperties.getAuthorizationHeaderName(), redisToken.toString());
-            writeJson(response, "认证token已过期，请重新登录");
+        if (redisToken == null || !redisToken.equals(realToken)) {
+            if (redisToken != null)
+                response.addHeader(AuthConstant.JWT_TOKEN_HEADER, redisToken.toString());
+            JwtUtils.writeJson(response, Result.failed("认证token已过期，请重新登录"),HttpStatus.UNAUTHORIZED);
             return;
         }
         // token过期 处理过期
-        if(jws==null){
-            handleTokenExpired(response, request, filterChain,userId);
+        if (jws == null) {
+            // 重新签发 token
+            String newToken = JwtUtils.generatorJwtToken(
+                    userId,
+                    tokenProperties.getTokenExpireSecond(),
+                    tokenProperties.getSecretKey()
+            );
+            redisService.del(Constants.RedisPrefix.TOKEN_PREFIX + userId);
+            redisService.set(Constants.RedisPrefix.TOKEN_PREFIX + userId, newToken, tokenProperties.getTokenExpireSecond() * 2);
+            realToken = newToken;
         }
 
         // 构建认证对象
-        saveAuthentication(response, request, filterChain, userId,realToken);
-    }
-    /**
-     * 处理token过期情况
-     *
-     * @param response
-     * @param request
-     * @param filterChain
-     * @param userId
-     * @return
-     * @throws IOException
-     */
-    private void handleTokenExpired(HttpServletResponse response, HttpServletRequest request, FilterChain filterChain, String userId) throws IOException, ServletException {
+        saveAuthentication(response, userId, realToken);
 
-        // 重新签发 token
-        String newToken = JwtUtils.generatorJwtToken(
-                userId,
-                tokenProperties.getTokenExpireSecond(),
-                tokenProperties.getSecretKey()
-        );
-
-        redisService.del(Constants.RedisPrefix.TOKEN_PREFIX + userId);
-        redisService.set(Constants.RedisPrefix.TOKEN_PREFIX + userId,newToken,tokenProperties.getTokenExpireSecond()*2);
-
-        // 构建认证对象
-        saveAuthentication(response, request, filterChain, userId,newToken);
-
+        filterChain.doFilter(request, response);
     }
 
-    private void saveAuthentication(HttpServletResponse response, HttpServletRequest request, FilterChain filterChain, Object userId,String token) throws IOException, ServletException {
+    private void saveAuthentication(HttpServletResponse response, Object userId, String token) {
         Set<String> permissions = userService.findPermissions(userId.toString());
         List<GrantedAuthority> authorities = permissions.stream().map(SimpleGrantedAuthority::new).collect(Collectors.toList());
         TestingAuthenticationToken testingAuthenticationToken = new TestingAuthenticationToken(userId, null, authorities);
         SecurityContextHolder.getContext().setAuthentication(testingAuthenticationToken);
-        response.addHeader(tokenProperties.getAuthorizationHeaderName(), token);
-        response.addHeader(tokenProperties.getAuthorities(), new Gson().toJson(authorities));
-        filterChain.doFilter(request, response);
-    }
-
-    /**
-     * 写 json 数据给前端
-     *
-     * @param response
-     * @throws IOException
-     */
-    private void writeJson(HttpServletResponse response, String msg) throws IOException {
-        response.setCharacterEncoding(StandardCharsets.UTF_8.name());
-        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-        response.setStatus(HttpStatus.UNAUTHORIZED.value());
-        response.getWriter().print(OBJECT_MAPPER.writeValueAsString(Result.failed( ResultCode.FORBIDDEN.getCode(),msg)));
+        response.addHeader(AuthConstant.JWT_TOKEN_HEADER, token);
+        response.addHeader(AuthConstant.AUTHORITY_CLAIM_NAME, new Gson().toJson(authorities));
     }
 
     /**
@@ -153,7 +114,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
      * @return
      */
     private String getRealAuthorizationToken(String authorizationToken) {
-        return StringUtils.substring(authorizationToken, tokenProperties.getTokenHeaderPrefix().length()).trim();
+        return StringUtils.substring(authorizationToken, AuthConstant.JWT_TOKEN_PREFIX.length()).trim();
     }
 
     /**
@@ -166,6 +127,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         if (StringUtils.isBlank(authorizationHeader)) {
             return false;
         }
-        return StringUtils.startsWith(authorizationHeader, tokenProperties.getTokenHeaderPrefix());
+        return StringUtils.startsWith(authorizationHeader, AuthConstant.JWT_TOKEN_PREFIX);
     }
 }
