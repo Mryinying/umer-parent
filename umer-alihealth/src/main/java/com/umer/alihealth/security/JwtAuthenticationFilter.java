@@ -26,6 +26,9 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalUnit;
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -56,6 +59,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         // 获取到真实的token
         String realToken = getRealAuthorizationToken(authorizationHeader);
         String userId;
+        String status = "0";
         // 解析 jwt token
         Jws<Claims> jws = null;
         try {
@@ -67,7 +71,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
         // token 不合法
         if (null == userId) {
-            JwtUtils.writeJson(response, Result.failed("认证token不合法"), HttpStatus.UNAUTHORIZED);
+            log.info("未登录或token失效 ===================");
+            JwtUtils.writeJson(response, Result.failed("未登录或token失效，请重新登录"), HttpStatus.UNAUTHORIZED);
             return;
         }
 
@@ -76,34 +81,36 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         if (redisToken == null || !redisToken.equals(realToken)) {
             if (redisToken != null)
                 response.addHeader(AuthConstant.JWT_TOKEN_HEADER, redisToken.toString());
-            JwtUtils.writeJson(response, Result.failed("认证token已过期，请重新登录"),HttpStatus.UNAUTHORIZED);
+            log.info("认证token已过期 ===================userId{}", userId);
+            JwtUtils.writeJson(response, Result.failed("认证token已过期，请重新登录"), HttpStatus.UNAUTHORIZED);
             return;
         }
-        // token过期 处理过期
-        if (jws == null) {
+        // token刷新策略
+        //1.token过期失效刷新
+        //2.过期时间过3/4刷新
+        Date expiration = Jwts.parser().setSigningKey(tokenProperties.getSecretKey()).parseClaimsJws(realToken).getBody().getExpiration();
+        if (jws == null || expiration.toInstant().minusSeconds((long) (tokenProperties.getTokenExpireSecond() * 0.75)).isBefore(new Date().toInstant())) {
             // 重新签发 token
-            String newToken = JwtUtils.generatorJwtToken(
-                    userId,
-                    tokenProperties.getTokenExpireSecond(),
-                    tokenProperties.getSecretKey()
-            );
+            String newToken = JwtUtils.generatorJwtToken(userId, tokenProperties.getTokenExpireSecond(), tokenProperties.getSecretKey());
             redisService.del(Constants.RedisPrefix.TOKEN_PREFIX + userId);
             redisService.set(Constants.RedisPrefix.TOKEN_PREFIX + userId, newToken, tokenProperties.getTokenExpireSecond() * 2);
             realToken = newToken;
+            status = "1";
         }
 
         // 构建认证对象
-        saveAuthentication(response, userId, realToken);
+        saveAuthentication(response, userId, realToken, status);
 
         filterChain.doFilter(request, response);
     }
 
-    private void saveAuthentication(HttpServletResponse response, Object userId, String token) {
+    private void saveAuthentication(HttpServletResponse response, Object userId, String token, String status) {
         Set<String> permissions = userService.findPermissions(userId.toString());
         List<GrantedAuthority> authorities = permissions.stream().map(SimpleGrantedAuthority::new).collect(Collectors.toList());
         TestingAuthenticationToken testingAuthenticationToken = new TestingAuthenticationToken(userId, null, authorities);
         SecurityContextHolder.getContext().setAuthentication(testingAuthenticationToken);
         response.addHeader(AuthConstant.JWT_TOKEN_HEADER, token);
+        response.addHeader(AuthConstant.JWT_TOKEN_STATUS, status);
         response.addHeader(AuthConstant.AUTHORITY_CLAIM_NAME, new Gson().toJson(authorities));
     }
 

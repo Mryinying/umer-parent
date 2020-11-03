@@ -22,6 +22,11 @@ public interface AuthConstant {
     String JWT_TOKEN_HEADER = "Authorization";
 
     /**
+     * 认证信息token替换status 0 不替换 1 替换
+     */
+    String JWT_TOKEN_STATUS = "Status";
+
+    /**
      * JWT令牌前缀
      */
     String JWT_TOKEN_PREFIX = "Bearer ";

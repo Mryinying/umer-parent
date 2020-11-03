@@ -55,6 +55,7 @@ public class Generator {
         //设置类名规范
         /*gc.setServiceImplName("%sServiceImpl");
         gc.setControllerName(null);*/
+        gc.setServiceName("%sService");
         mpg.setGlobalConfig(gc);
 
         // 包配置

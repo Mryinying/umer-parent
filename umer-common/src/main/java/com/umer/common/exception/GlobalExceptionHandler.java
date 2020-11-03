@@ -15,38 +15,33 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(value = ApiException.class)
-    public Result handle(ApiException e) {
+    public Result<Object> handle(ApiException e) {
         return Result.failed(e.getCode(),e.getMessage());
     }
 
     @ExceptionHandler(value = MethodArgumentNotValidException.class)
-    public Result handleValidException(MethodArgumentNotValidException e) {
-        BindingResult bindingResult = e.getBindingResult();
-        String message = null;
-        if (bindingResult.hasErrors()) {
-            FieldError fieldError = bindingResult.getFieldError();
-            if (fieldError != null) {
-                message = fieldError.getField()+fieldError.getDefaultMessage();
-            }
-        }
-        return Result.validateFailed(message);
+    public Result<Object> handleValidException(MethodArgumentNotValidException e) {
+        return getResult(e.getBindingResult());
     }
 
     @ExceptionHandler(value = BindException.class)
-    public Result handleValidException(BindException e) {
-        BindingResult bindingResult = e.getBindingResult();
+    public Result<Object> handleValidException(BindException e) {
+        return getResult(e.getBindingResult());
+    }
+
+    @ExceptionHandler(value = Exception.class)
+    public Result<Object> handleValidException(Exception e) {
+        return Result.failed(e.getMessage());
+    }
+
+    private Result<Object> getResult(BindingResult bindingResult2) {
         String message = null;
-        if (bindingResult.hasErrors()) {
-            FieldError fieldError = bindingResult.getFieldError();
+        if (bindingResult2.hasErrors()) {
+            FieldError fieldError = bindingResult2.getFieldError();
             if (fieldError != null) {
                 message = fieldError.getField()+fieldError.getDefaultMessage();
             }
         }
         return Result.validateFailed(message);
-    }
-
-    @ExceptionHandler(value = Exception.class)
-    public Result handleValidException(Exception e) {
-        return Result.failed(e.getMessage());
     }
 }

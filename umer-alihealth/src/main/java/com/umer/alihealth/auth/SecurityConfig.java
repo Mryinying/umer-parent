@@ -113,6 +113,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 // swagger
                 .antMatchers("/swagger**/**").permitAll()
                 .antMatchers("/webjars/**").permitAll()
+                .antMatchers("/alihealth/**").permitAll()
                 .antMatchers("/v2/**").permitAll()
                 .anyRequest().authenticated()
                 // 这里表示任何请求都需要校验认证(上面配置的放行)

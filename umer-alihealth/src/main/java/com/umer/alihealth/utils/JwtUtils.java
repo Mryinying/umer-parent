@@ -2,20 +2,16 @@ package com.umer.alihealth.utils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.umer.common.api.Result;
-import com.umer.common.api.ResultCode;
 import com.umer.common.constant.AuthConstant;
 import com.umer.common.util.GsonUtils;
-import io.jsonwebtoken.*;
-import io.jsonwebtoken.impl.DefaultJws;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.security.authentication.TestingAuthenticationToken;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.context.SecurityContextHolder;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -24,7 +20,6 @@ import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
-import java.util.List;
 
 /**
  * jwt 工具类

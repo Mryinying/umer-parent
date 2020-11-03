@@ -70,6 +70,7 @@ public class JwtLoginFilter extends UsernamePasswordAuthenticationFilter {
         // 此过滤器的用户名密码默认从request.getParameter()获取，但是这种
         // 读取方式不能读取到如 application/json 等 post 请求数据，需要把
         // 用户名密码的读取逻辑修改为到流中读取request.getInputStream()
+        log.debug("enter attemptAuthentication");
         User loginUser = null;
         try {
             loginUser = new ObjectMapper().readValue(request.getInputStream(), User.class);
@@ -96,6 +97,7 @@ public class JwtLoginFilter extends UsernamePasswordAuthenticationFilter {
     @Override
     protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain,
                                             Authentication authResult) throws IOException {
+        log.debug("enter successfulAuthentication");
         // 存储登录认证信息到上下文
         SecurityContextHolder.getContext().setAuthentication(authResult);
 
@@ -110,11 +112,14 @@ public class JwtLoginFilter extends UsernamePasswordAuthenticationFilter {
 
         response.addHeader(AuthConstant.AUTHORITY_CLAIM_NAME, new Gson().toJson(authResult.getAuthorities()));
         response.addHeader(AuthConstant.JWT_TOKEN_HEADER, token);
+        response.addHeader(AuthConstant.JWT_TOKEN_STATUS, "1");
+        log.info("login success ==================={}",username);
         JwtUtils.writeJson(response,Result.success("login success"), HttpStatus.OK);
     }
 
     @Override
     protected void unsuccessfulAuthentication(HttpServletRequest request, HttpServletResponse response, AuthenticationException failed) throws IOException, ServletException {
+        log.info("login fail ===================");
         JwtUtils.writeJson(response,Result.failed("login fail"), HttpStatus.UNAUTHORIZED);
     }
 }

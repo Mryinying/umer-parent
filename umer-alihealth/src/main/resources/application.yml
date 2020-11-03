@@ -1,9 +1,20 @@
 server:
   port: 8082
+  servlet:
+    context-path: /**
 
 spring:
   profiles:
-    active: local
+    active: prod
+  aop:
+    auto: true
+
+logging:
+  config: classpath:logback-spring.xml
+  file:
+    path: /opt/log/umer-alihealth
+  level:
+    root: info
 
 mybatis:
   mapper-locations: classpath:/mapper/*.xml
@@ -14,6 +25,7 @@ token:
   secret-key: 123kafkahiwhfakna0808234*)*)(
   # token 过期的秒数
   token-expire-second: 60
+#  4800
 
 management:
   endpoints:
